@@ -295,6 +295,36 @@ body[data-team="maccabi"]{ --kit-1:#0b8f3e; --kit-2:#087a34; }
 .cta3d b{font-size:17px}
 .cta3d small{display:block;color:var(--muted);font-size:13px}
 
+/* v4: adaptive level, report, music */
+.prompt .vis.name{font-size:clamp(22px,6vw,30px);letter-spacing:.04em}
+.pn-m{font-size:12px;color:var(--muted);background:var(--night);border:1px solid var(--panel-line);border-radius:99px;padding:1px 8px}
+.jump{background:linear-gradient(90deg,var(--kit-1),var(--kit-2));color:#fff;font-weight:700;border-radius:14px;padding:10px 14px;max-width:380px}
+.mbar{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;max-width:360px;font-size:14px;color:var(--muted)}
+.mbar div{height:10px;border-radius:99px;background:var(--night);border:1px solid var(--panel-line);overflow:hidden}
+.mbar i{display:block;height:100%;background:linear-gradient(90deg,var(--kit-1),var(--led))}
+.mbar b{color:var(--led);font-family:var(--f-led);font-weight:400;direction:ltr}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px;direction:ltr}
+.rep-l{border-radius:12px;padding:8px 2px 6px;text-align:center;background:var(--panel);border:2px solid var(--panel-line)}
+.rep-l b{display:block;font-family:var(--f-en);font-size:24px;line-height:1.1}
+.rep-l span{font-size:11px;color:var(--muted)}
+.rep-l.g{border-color:var(--good)} .rep-l.m{border-color:var(--led)} .rep-l.b{border-color:var(--bad)}
+.rep-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.rep-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle}
+.rep-stages{display:grid;gap:8px}
+.rep-st{display:grid;grid-template-columns:28px 1fr 64px;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:10px 12px}
+.rep-st .n{font-family:var(--f-led);color:var(--led);text-align:center}
+.rep-st .t{font-size:14px;min-width:0}
+.rep-st .bar2{height:8px;border-radius:99px;background:var(--night);overflow:hidden;margin-top:5px}
+.rep-st .bar2 i{display:block;height:100%;background:linear-gradient(90deg,var(--kit-1),var(--led))}
+.rep-st .v{font-size:13px;color:var(--muted);text-align:end}
+.chipsr{display:flex;gap:6px;flex-wrap:wrap}
+.chipsr button{background:var(--panel);border:1px solid var(--bad);border-radius:99px;padding:5px 12px;font-family:var(--f-en);font-size:16px}
+.iconbtn.on{border-color:var(--led);box-shadow:0 0 0 2px rgba(255,194,61,.25)}
+.club .kitbtn{position:absolute;top:10px;inset-inline-end:10px;z-index:2;background:rgba(10,16,36,.75)}
+.topbar .row{gap:6px}
+@media (max-width:420px){ .iconbtn{width:38px;height:38px;font-size:18px} .brand{font-size:20px} }
+.intro-tip{font-size:13px;color:var(--muted);text-align:center;margin-top:-6px}
+
 @media (max-width:420px){
   .prompt{grid-template-columns:auto 1fr;}
   .prompt .speak{grid-column:2;justify-self:start;width:48px;height:48px;font-size:20px}
@@ -308,42 +338,17 @@ body[data-team="maccabi"]{ --kit-1:#0b8f3e; --kit-2:#087a34; }
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="kitstripes" width="20" height="100" patternUnits="userSpaceOnUse"><rect width="10" height="100" style="fill:var(--kit-1)"/><rect x="10" width="10" height="100" style="fill:var(--kit-2)"/></pattern></defs></svg>
 <canvas id="fx"></canvas>
 
+<script src="content.js"></script>
 <script>
 (()=>{
-/* ---------- data ---------- */
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-const PIC = [
-  ["ball","⚽"],["cat","🐱"],["dog","🐶"],["sun","☀️"],["car","🚗"],["bus","🚌"],["egg","🥚"],["fish","🐟"],
-  ["hat","🎩"],["bed","🛏️"],["apple","🍎"],["book","📖"],["star","⭐"],["tree","🌳"],["milk","🥛"],["box","📦"],
-  ["key","🔑"],["moon","🌙"],["pizza","🍕"],["lion","🦁"],["house","🏠"],["phone","📱"],["shoe","👟"],["bird","🐦"]
-];
-const FOOT = [
-  ["ball","כדור","⚽"],["goal","שער / גול","🥅"],["team","קבוצה","👕"],["kick","בעיטה","🦵"],["win","לנצח","🏆"],
-  ["player","שחקן","🏃"],["coach","מאמן","📋"],["fans","אוהדים","📣"],["shirt","חולצה","👕"],["pass","מסירה","↔️"],
-  ["run","לרוץ","🏃"],["jump","לקפוץ","🦘"],["cup","גביע","🏆"],["keeper","שוער","🧤"],["referee","שופט","🟨"],
-  ["captain","קפטן","©️"],["stadium","אצטדיון","🏟️"],["fast","מהיר","⚡"],["score","להבקיע","🎯"],["lose","להפסיד","😞"]
-];
-const SENT = [
-  ["I kick the ___.","ball",["ball","sun","milk"],"אני בועט בכדור."],
-  ["He scores a ___!","goal",["goal","cat","bed"],"הוא מבקיע גול!"],
-  ["We ___ the cup!","win",["win","sleep","eat"],"אנחנו זוכים בגביע!"],
-  ["The keeper wears ___.","gloves",["gloves","pizza","trees"],"השוער לובש כפפות."],
-  ["The ___ shows a red card.","referee",["referee","apple","moon"],"השופט מראה כרטיס אדום."],
-  ["Pass the ball to ___!","me",["me","red","run"],"תמסור לי את הכדור!"],
-  ["The fans are very ___.","happy",["happy","under","table"],"האוהדים מאוד שמחים."],
-  ["She runs very ___.","fast",["fast","book","green"],"היא רצה מהר מאוד."],
-  ["My team plays ___ Sunday.","on",["on","dog","yes"],"הקבוצה שלי משחקת ביום ראשון."],
-  ["The coach ___ to the players.","talks",["talks","fish","blue"],"המאמן מדבר אל השחקנים."],
-  ["Our team is the ___!","best",["best","egg","sit"],"הקבוצה שלנו הכי טובה!"],
-  ["I ___ football every day.","play",["play","house","cold"],"אני משחק כדורגל כל יום."]
-];
+/* ---------- data (shared with 3d.html, see content.js) ---------- */
+const {LETTERS,PIC,FOOT,SENT,STARS,STAGES}=EK;
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
-const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const shuffle = EK.shuffle;
 const pickOthers = (pool, not, n) => shuffle(pool.filter(x=>x!==not)).slice(0,n);
-const opts3 = (ans, pool) => shuffle([ans, ...pickOthers(pool, ans, 2)]);
-const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const opts3 = EK.opts3, esc = EK.esc;
 
 /* ---------- graphics ---------- */
 function ballURI(light){
@@ -421,30 +426,10 @@ function confetti(x,y){
   })(t0);
 }
 
-/* ---------- stages ---------- */
-const STAGES = [
-  { t:"אותיות גדולות", s:"שומעים אות ובועטים לאות הנכונה", audio:true,
-    make(){ return shuffle(LETTERS).slice(0,10).map(L=>({vis:"🔊", ask:"איזו אות שמעת?", speak:L+".", say:L+".", options:opts3(L,LETTERS), answer:L })); } },
-  { t:"קטנה וגדולה", s:"מתאימים אות קטנה לאות הגדולה שלה", audio:false,
-    make(){ return shuffle(LETTERS).slice(0,10).map(L=>({vis:L.toLowerCase(), visEn:true, ask:"מצא את האות הגדולה", sub:"", say:L+".", options:opts3(L,LETTERS), answer:L })); } },
-  { t:"הצליל הראשון", s:"באיזו אות מתחילה המילה?", audio:true,
-    make(){ const lows=LETTERS.map(l=>l.toLowerCase()); return shuffle(PIC).slice(0,10).map(([w,e])=>({vis:e, ask:"באיזו אות מתחילה המילה?", sub:`<span class="en">_${esc(w.slice(1))}</span>`, speak:w, say:w, options:opts3(w[0],lows), answer:w[0], show:w })); } },
-  { t:"מילים ראשונות", s:"רואים תמונה ובוחרים את המילה", audio:false,
-    make(){ const words=PIC.map(p=>p[0]); return shuffle(PIC).slice(0,10).map(([w,e])=>({vis:e, ask:"מה המילה באנגלית?", say:w, options:opts3(w,words), answer:w })); } },
-  { t:"מילים מהמגרש", s:"מילים של כדורגל, מעברית לאנגלית", audio:false,
-    make(){ const words=FOOT.map(f=>f[0]); return shuffle(FOOT).slice(0,10).map(([w,h,e])=>({vis:e, ask:`איך אומרים "${h}"?`, say:w, options:opts3(w,words), answer:w, heb:h })); } },
-  { t:"שמיעה וקריאה", s:"שומעים מילה, בלי תמונה, ומוצאים אותה", audio:true,
-    make(){ const all=[...new Set([...PIC.map(p=>p[0]),...FOOT.map(f=>f[0])])]; return shuffle(all).slice(0,10).map(w=>({vis:"🔊", ask:"איזו מילה שמעת?", speak:w, say:w, options:opts3(w,all), answer:w })); } },
-  { t:"משפטים מהמשחק", s:"משלימים את המילה החסרה במשפט", audio:false,
-    make(){ return shuffle(SENT).slice(0,10).map(([s,a,o,h])=>({vis:"📣", ask:"איזו מילה חסרה?", sub:`<span class="en">${esc(s)}</span>`, say:s.replace("___",a), options:shuffle(o), answer:a, heb:h, show:s.replace("___",a) })); } }
-];
 const SHOTS = 10, PASS = 7;
 
-/* ---------- storage ---------- */
-const KEY="english-kick-v1";
-let P = { team:null, unlocked:1, stars:{}, goals:0, best:{}, xp:0, badges:{}, flags:{} };
-try{ const raw=localStorage.getItem(KEY); if(raw) P=Object.assign(P,JSON.parse(raw)); }catch(e){}
-const save = () => { try{ localStorage.setItem(KEY,JSON.stringify(P)); }catch(e){} };
+/* ---------- storage (shared) ---------- */
+const P=EK.P, save=EK.save;
 let muted=false;
 
 /* ---------- sound ---------- */
@@ -457,6 +442,48 @@ function ctx(){ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioCon
 function whistle(){ const a=ctx(); if(!a||muted) return; const o=a.createOscillator(), g=a.createGain(), l=a.createOscillator(), lg=a.createGain(); o.frequency.value=2300; l.frequency.value=28; lg.gain.value=180; l.connect(lg); lg.connect(o.frequency); o.connect(g); g.connect(a.destination); const t=a.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.12,t+.02); g.gain.setValueAtTime(.12,t+.35); g.gain.linearRampToValueAtTime(0,t+.45); o.start(t); l.start(t); o.stop(t+.5); l.stop(t+.5); }
 function crowd(on){ const a=ctx(); if(!a||muted) return; const len=a.sampleRate*(on?1.6:.35), b=a.createBuffer(1,len,a.sampleRate), d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type="bandpass"; f.frequency.value=on?900:220; f.Q.value=.6; const g=a.createGain(); const t=a.currentTime; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(on?.35:.4,t+(on?.25:.02)); g.gain.exponentialRampToValueAtTime(.001,t+(on?1.6:.35)); s.connect(f); f.connect(g); g.connect(a.destination); s.start(t); }
 
+/* ---------- intro music: an original stadium tune, generated live (no audio files) ---------- */
+let VIEW="home";
+const MUS={on:false,timer:null,next:0,step:0,master:null};
+const EIGHTH=60/126/2;
+const MEL=[67,67,72,72,71,69,67,0, 64,67,69,67,64,62,60,0, 67,67,72,72,74,72,71,69, 67,0,72,0,67,0,0,0];
+const BASS=[48,48,43,43,45,45,41,43];
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+let NB=null; function nbuf(){ if(!NB){ NB=ac.createBuffer(1,ac.sampleRate,ac.sampleRate); const d=NB.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; } return NB; }
+function mBrass(t,m,dur){ const f=ac.createBiquadFilter(), g=ac.createGain(); f.type="lowpass"; f.frequency.setValueAtTime(900,t); f.frequency.linearRampToValueAtTime(2600,t+.05); f.frequency.linearRampToValueAtTime(1300,t+dur);
+  [-8,0,8].forEach(d=>{ const o=ac.createOscillator(); o.type="sawtooth"; o.frequency.value=mtof(m); o.detune.value=d; o.connect(f); o.start(t); o.stop(t+dur+.05); });
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.045,t+.03); g.gain.setValueAtTime(.045,t+dur*.7); g.gain.linearRampToValueAtTime(0,t+dur); f.connect(g); g.connect(MUS.master); }
+function mBass(t,m,dur){ const o=ac.createOscillator(), g=ac.createGain(); o.type="triangle"; o.frequency.value=mtof(m); g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+dur); o.connect(g); g.connect(MUS.master); o.start(t); o.stop(t+dur); }
+function mKick(t){ const o=ac.createOscillator(), g=ac.createGain(); o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(45,t+.12); g.gain.setValueAtTime(.45,t); g.gain.exponentialRampToValueAtTime(.001,t+.18); o.connect(g); g.connect(MUS.master); o.start(t); o.stop(t+.2); }
+function mNoise(t,freq,q,vol,dur){ const s=ac.createBufferSource(); s.buffer=nbuf(); const f=ac.createBiquadFilter(); f.type="bandpass"; f.frequency.value=freq; f.Q.value=q; const g=ac.createGain(); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur); s.connect(f); f.connect(g); g.connect(MUS.master); s.start(t,Math.random()*.5,dur+.05); }
+function mSchedule(){
+  while(MUS.next<ac.currentTime+.25){
+    const i=MUS.step%32, t=MUS.next;
+    if(i%4===0) mKick(t);
+    if(i%4===2) mNoise(t,1500,.8,.22,.14);           // clap
+    if(i%2===1) mNoise(t,7000,1,.05,.04);            // hi-hat
+    if(i%2===0) mBass(t,BASS[Math.floor(i/4)%8],EIGHTH*1.8);
+    const m=MEL[i]; if(m){ let len=1; while(i+len<32&&MEL[i+len]===0&&len<3) len++; mBrass(t,m,EIGHTH*len*.95); }
+    if(i===28||i===30) mNoise(t,650,1.2,.35,.22);    // crowd "hey!"
+    MUS.step++; MUS.next+=EIGHTH;
+  }
+}
+function musicStart(){
+  if(MUS.on||muted||P.music===false||VIEW!=="home") return;
+  const a=ctx(); if(!a) return; if(a.state==="suspended") a.resume();
+  MUS.master=a.createGain(); MUS.master.gain.setValueAtTime(0,a.currentTime); MUS.master.gain.linearRampToValueAtTime(.85,a.currentTime+1.2); MUS.master.connect(a.destination);
+  MUS.on=true; MUS.step=0; MUS.next=a.currentTime+.08; MUS.timer=setInterval(mSchedule,60); mSchedule();
+  const b=$("#music"); if(b) b.classList.add("on");
+}
+function musicStop(){
+  if(!MUS.on) return; MUS.on=false; clearInterval(MUS.timer);
+  const g=MUS.master, t=ac.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t); g.gain.linearRampToValueAtTime(0,t+.5); setTimeout(()=>{ try{g.disconnect()}catch(e){} },700);
+  const b=$("#music"); if(b) b.classList.remove("on");
+}
+function leaveHome(v){ VIEW=v; musicStop(); }
+document.addEventListener("pointerdown",()=>{ if(VIEW==="home") setTimeout(()=>{ if(VIEW==="home") musicStart(); },0); });
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) musicStop(); });
+
 /* ---------- views ---------- */
 const app=$("#app");
 const TEAMS={ barca:{name:"ברצלונה", c1:"#1f53d6", c2:"#a50044"}, maccabi:{name:"מכבי חיפה", c1:"#0b8f3e", c2:"#e9f7ee"} };
@@ -465,7 +492,7 @@ function applyTeam(){ document.body.dataset.team = P.team||"barca"; }
 function topbar(extra=""){
   return `<div class="topbar"><div class="brand">ENGLISH <b>KICK</b></div><div class="row">${extra}<button class="iconbtn" id="mute" aria-label="${muted?"הפעל קול":"השתק"}">${muted?"🔇":"🔊"}</button></div></div>`;
 }
-function bindMute(){ $("#mute").onclick=()=>{ muted=!muted; if(muted) try{speechSynthesis.cancel()}catch(e){}; const b=$("#mute"); b.textContent=muted?"🔇":"🔊"; b.setAttribute("aria-label",muted?"הפעל קול":"השתק"); }; }
+function bindMute(){ $("#mute").onclick=()=>{ muted=!muted; if(muted){ try{speechSynthesis.cancel()}catch(e){}; musicStop(); } const b=$("#mute"); b.textContent=muted?"🔇":"🔊"; b.setAttribute("aria-label",muted?"הפעל קול":"השתק"); }; }
 const starStr = n => "★".repeat(n)+"☆".repeat(3-n);
 
 /* ---------- ranks & trophies ---------- */
@@ -477,8 +504,9 @@ const BADGES=[
   {id:"first", sym:"1", t:"גול ראשון", d:"להבקיע את הגול הראשון", test:()=>P.goals>=1},
   {id:"hat", sym:"3×", t:"שלושער", d:"3 גולים ברצף במשחק אחד", test:()=>!!(P.flags&&P.flags.hat)},
   {id:"perfect", sym:"10", t:"משחק מושלם", d:"10 מתוך 10 במחזור", test:()=>Object.values(P.stars).some(s=>s>=3)},
-  {id:"half", sym:"½", t:"חצי עונה", d:"לנצח ב-4 מחזורים", test:()=>wonStages()>=4},
-  {id:"champ", sym:"7/7", t:"אלוף העונה", d:"לנצח בכל 7 המחזורים", test:()=>wonStages()>=7},
+  {id:"half", sym:"½", t:"חצי עונה", d:"לנצח ב-5 מחזורים", test:()=>wonStages()>=5},
+  {id:"champ", sym:"10", t:"אלוף העונה", d:"לנצח בכל 10 המחזורים", test:()=>wonStages()>=STAGES.length},
+  {id:"stars", sym:"★", t:"מכיר את הכוכבים", d:"לנצח בשלושת מחזורי הכוכבים", test:()=>STAGES.every((st,i)=>!st.star||(P.stars[i+1]||0)>=1)},
   {id:"abc", sym:"ABC", t:"מלך ה-ABC", d:"3 כוכבים במסירות ABC", test:()=>[0,1,2].some(k=>(P.best["pass"+k]||0)>=3)},
   {id:"wall", sym:"GK", t:"שוער ברזל", d:"3 כוכבים בשוער ברמה קשה", test:()=>(P.best.keeper2||0)>=3},
   {id:"elephant", sym:"Aa", t:"זיכרון של פיל", d:"3 כוכבים בזיכרון ברמה קשה", test:()=>(P.best.memory2||0)>=3},
@@ -505,14 +533,16 @@ function collectRewards(before){
 function home(){
   stopDrill();
   applyTeam();
+  VIEW="home";
   const pt=points(), r=rankOf(pt), nextR=RANKS[r+1];
   const prog = nextR ? (pt-RANKS[r][1])/(nextR[1]-RANKS[r][1]) : 1;
   const cur=Math.min(P.unlocked,STAGES.length)-1;
   const badgeCount=Object.keys(P.badges||{}).length;
   const other = (P.team||"barca")==="barca" ? "maccabi" : "barca";
-  app.innerHTML = topbar(`<button class="iconbtn" id="trophies" aria-label="ארון הגביעים">🏆<span class="badgecount">${badgeCount}</span></button><button class="iconbtn kitbtn" id="kit" aria-label="לעבור לצבעים של ${TEAMS[other].name}" title="לעבור לצבעים של ${TEAMS[other].name}">${SHIRT}</button>`) + `
+  app.innerHTML = topbar(`<button class="iconbtn" id="music" aria-label="מוזיקה" title="מוזיקה">${P.music===false?"🔕":"🎵"}</button><button class="iconbtn" id="report" aria-label="הדוח של אורחי" title="הדוח של אורחי">📊</button><button class="iconbtn" id="trophies" aria-label="ארון הגביעים">🏆<span class="badgecount">${badgeCount}</span></button>`) + `
   <section class="club">
     <canvas class="herocrowd" id="herocrowd"></canvas>
+    <button class="iconbtn kitbtn" id="kit" aria-label="לעבור לצבעים של ${TEAMS[other].name}" title="לעבור לצבעים של ${TEAMS[other].name}">${SHIRT}</button>
     <div class="club-in">
       <div class="rank"><span class="medal">${r+1}</span><div class="rank-txt"><div class="rk-l">הדרגה של אורחי · ${TEAMS[P.team||"barca"].name}</div><div class="rk-n">${RANKS[r][0]}</div></div><div class="pts"><b>${pt}</b><span>נק'</span></div></div>
       <div class="xp" role="progressbar" aria-valuenow="${Math.round(prog*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${Math.max(3,Math.round(prog*100))}%"></i></div>
@@ -520,7 +550,7 @@ function home(){
       <button class="play" id="play"><span class="play-ic"></span><span><b>שחק</b><small>מחזור ${cur+1} · ${STAGES[cur].t}</small></span></button>
     </div>
   </section>
-  <a class="cta3d" href="3d.html"><span class="cta3d-i">🏟️</span><span><b>אצטדיון תלת־ממד</b><small>פנדלים בתלת־ממד עם הילוך חוזר</small></span></a>
+  <a class="cta3d" href="3d.html"><span class="cta3d-i">🏟️</span><span><b>אצטדיון תלת־ממד</b><small>פנדלים, שוער ומסירות לכוכבים בתלת־ממד</small></span></a>
   <h2 class="sec-title">אימון אותיות</h2>
   <div class="tiles">${DRILLS.map(d=>{ const tot=[0,1,2].reduce((a,k)=>a+(P.best[d.id+k]||0),0);
     return `<button class="tile" data-drill="${d.id}"><span class="tile-art">${drillArt(d.id)}</span><b>${d.t}</b><span class="tile-st"><span>★</span> ${tot}/9</span></button>`; }).join("")}</div>
@@ -528,10 +558,13 @@ function home(){
   <div class="path" id="path">${STAGES.map((st,i)=>{ const n=i+1, locked=n>P.unlocked, s=P.stars[n]||0;
     return `<div class="pnode-row" style="--off:${[0,1,0,-1][i%4]}">
       <button class="pnode ${s>=1?"done":""} ${i===cur?"cur":""}" data-stage="${i}" ${locked?"disabled":""} aria-label="מחזור ${n}: ${st.t}"><span class="pn-n">${locked?"🔒":n}</span>${i===cur?'<span class="pn-tag">המשחק הבא</span>':""}</button>
-      <div class="pn-info"><b>${st.t}</b><span class="pn-st">${locked?"":starStr(s)}</span></div></div>`; }).join("")}</div>
+      <div class="pn-info"><b>${st.t}</b><span class="pn-st">${locked?"":starStr(s)}</span>${!locked&&EK.mastery(n)!==null?`<span class="pn-m">רמה ${Math.round(EK.mastery(n)*100)}%</span>`:""}</div></div>`; }).join("")}</div>
   <p class="tip">טיפ: הרמקול משמיע את המילה שוב כמה פעמים שרוצים, ותשובה שפספסת חוזרת שוב באותו משחק.</p>`;
   bindMute();
   $("#trophies").onclick=trophies;
+  $("#report").onclick=report;
+  $("#music").onclick=e=>{ e.stopPropagation(); if(MUS.on||P.music!==false){ P.music=false; musicStop(); } else { P.music=true; } save(); $("#music").textContent=P.music===false?"🔕":"🎵"; if(P.music!==false) musicStart(); };
+  if(MUS.on) $("#music").classList.add("on");
   $("#kit").onclick=()=>{ P.team=other; save(); home(); };
   $("#play").onclick=()=>startMatch(cur);
   app.querySelectorAll(".pnode").forEach(b=>b.onclick=()=>startMatch(+b.dataset.stage));
@@ -554,6 +587,7 @@ function drawPath(){
 window.addEventListener("resize",()=>requestAnimationFrame(drawPath));
 
 function trophies(){
+  leaveHome("trophies");
   const got=Object.keys(P.badges||{}).length, pt=points(), r=rankOf(pt);
   app.innerHTML = topbar() + `
   <div class="hud"><div><div class="hud-t">ארון הגביעים</div><div class="hud-s">${got} מתוך ${BADGES.length} גביעים</div></div><div class="hud-stats"><div class="stat"><span class="n">${pt}</span><span class="l">נקודות</span></div></div></div>
@@ -564,9 +598,36 @@ function trophies(){
   bindMute(); $("#quit").onclick=home;
 }
 
+/* ---------- progress report: what the system has learned about him ---------- */
+function report(){
+  leaveHome("report");
+  const lacc=L=>{ const a=[EK.acc("L:"+L),EK.acc("l:"+L)].filter(x=>x!==null); return a.length?a.reduce((x,y)=>x+y,0)/a.length:null; };
+  const cls=a=>a===null?"":a>=.8?"g":a>=.5?"m":"b";
+  const label=k=>k.slice(k.indexOf(":")+1);
+  const items=Object.entries(P.items||{}).filter(([k,v])=>v.r.length>=2).map(([k,v])=>({k,a:EK.acc(k)}));
+  const weak=items.filter(x=>x.a<.6).sort((a,b)=>a.a-b.a).slice(0,10);
+  const strong=items.filter(x=>x.a>=.8).length;
+  app.innerHTML = topbar() + `
+  <div class="hud"><div><div class="hud-t">הדוח של אורחי</div><div class="hud-s">המערכת עוקבת אחרי כל אות, מילה ושם, ומביאה יותר את מה שעוד לא יושב</div></div>
+    <div class="hud-stats"><div class="stat"><span class="n">${strong}</span><span class="l">יושבים טוב</span></div></div></div>
+  <h2 class="sec-title">האותיות</h2>
+  <div class="rep-legend"><span><i style="background:var(--good)"></i>יודע</span><span><i style="background:var(--led)"></i>כמעט</span><span><i style="background:var(--bad)"></i>צריך חיזוק</span><span><i style="background:var(--panel-line)"></i>עוד לא תרגל</span></div>
+  <div class="rep-grid">${LETTERS.map(L=>{ const a=lacc(L); return `<div class="rep-l ${cls(a)}"><b>${L}</b><span>${a===null?"–":Math.round(a*100)+"%"}</span></div>`; }).join("")}</div>
+  <h2 class="sec-title">לחזק עכשיו</h2>
+  ${weak.length?`<div class="chipsr">${weak.map(x=>`<button data-say="${esc(label(x.k).length===1?label(x.k)+".":label(x.k))}">${esc(label(x.k))}</button>`).join("")}</div><p class="tip">לחיצה משמיעה. הדברים האלה יופיעו יותר במשחקים הבאים.</p>`:`<p class="tip">עוד אין מספיק משחקים כדי לדעת. אחרי כמה מחזורים יופיע כאן מה לחזק.</p>`}
+  <h2 class="sec-title">הרמה בכל מחזור</h2>
+  <div class="rep-stages">${STAGES.map((st,i)=>{ const n=i+1, m=EK.mastery(n), locked=n>P.unlocked;
+    return `<div class="rep-st"><span class="n">${n}</span><div class="t">${st.t}<div class="bar2"><i style="width:${m===null?0:Math.round(m*100)}%"></i></div></div><span class="v">${locked?"🔒":m===null?"עוד לא":Math.round(m*100)+"%"}</span></div>`; }).join("")}</div>
+  <p class="tip">איך עולים שלב: ניצחון של 7 מתוך 10, או רמה של 80% ומעלה במחזור. 10 מתוך 10 מקפיץ שני מחזורים קדימה.</p>
+  <div class="matchfoot"><button class="ghost" id="quit">→ חזרה לעמוד הראשי</button></div>`;
+  bindMute(); $("#quit").onclick=home;
+  app.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
+}
+
 /* ---------- match ---------- */
 let M=null;
 function startMatch(i){
+  leaveHome("match");
   const st=STAGES[i];
   M={ i, st, queue:st.make(), idx:0, goals:0, saves:0, log:[], missed:[], busy:false, streak:0 };
   RB=snapshot();
@@ -612,7 +673,7 @@ function nextShot(){
   renderShots();
   const hasAudio=!!q.speak;
   $("#prompt").innerHTML = `
-    <div class="vis ${q.visEn?"big-en en":""}">${esc(q.vis)}</div>
+    <div class="vis ${q.visEn?"big-en en":""} ${q.visName?"name":""}">${esc(q.vis)}</div>
     <div><div class="ask">${esc(q.ask)}</div>${q.sub?`<div class="sub">${q.sub}</div>`:""}</div>
     ${hasAudio?`<button class="speak pulse" id="speak" aria-label="השמע שוב">🔊</button>`:`<span></span>`}`;
   if(hasAudio){ $("#speak").onclick=()=>say(q.speak); setTimeout(()=>say(q.speak),250); }
@@ -663,7 +724,7 @@ function shoot(k, btn){
       const back=M.idx+3;
       if(back<SHOTS){ M.queue.splice(back,0,{...q, options:shuffle(q.options)}); M.queue.length=Math.max(SHOTS,M.queue.length); }
     }
-    M.log[M.idx]=ok;
+    M.log[M.idx]=ok; EK.recordItem(M.i+1,q.key,ok);
     renderShots();
     showFlash(ok,q);
     setTimeout(()=>say(q.say),ok?350:500);
@@ -688,8 +749,9 @@ function endMatch(){
   const stars = g>=10?3:g>=9?2:g>=PASS?1:0;
   const won = g>=PASS;
   if(stars>(P.stars[n]||0)) P.stars[n]=stars;
-  if(won && P.unlocked<n+1) P.unlocked=Math.min(n+1,STAGES.length+1);
+  const ev=EK.evaluate(n,g,SHOTS);
   save(); whistle();
+  const mPct=ev.mastery===null?null:Math.round(ev.mastery*100);
   const rw=collectRewards(RB);
   if(won||rw.any) setTimeout(()=>confetti(innerWidth/2, innerHeight*.3),250);
   const last = n===STAGES.length;
@@ -701,11 +763,14 @@ function endMatch(){
     <div class="final">${g} - ${SHOTS-g}</div>
     <div class="stars" aria-label="${stars} כוכבים">${starStr(stars)}</div>
     ${rw.html}
-    <p>${won?(last?"עברת את כל המחזורים. אפשר לחזור ולאסוף 3 כוכבים בכל אחד.":`מחזור ${n+1} נפתח. ${stars<3?"רוצה לנסות לאסוף 3 כוכבים כאן?":"משחק מושלם!"}`):`צריך ${PASS} שערים כדי לעלות. הבקעת ${g}, עוד קצת וזה שלך.`}</p>
+    ${ev.why==="jump"?`<div class="jump">🚀 קפיצת מדרגה! 10 מתוך 10, אז דילגת ישר למחזור ${ev.to}</div>`:""}
+    ${ev.why==="mastery"&&!won?`<div class="jump">📈 הרמה שלך במחזור הזה ${mPct}%, אז מחזור ${n+1} נפתח</div>`:""}
+    <p>${won?(last?"עברת את כל המחזורים. אפשר לחזור ולאסוף 3 כוכבים בכל אחד.":`${ev.why==="jump"?"":`מחזור ${n+1} נפתח. `}${stars<3?"רוצה לנסות לאסוף 3 כוכבים כאן?":"משחק מושלם!"}`):(ev.why==="mastery"?"":`צריך ${PASS} שערים כדי לעלות. הבקעת ${g}, עוד קצת וזה שלך.`)}</p>
+    ${mPct!==null?`<div class="mbar"><span>הרמה שלך במחזור ${n}</span><div><i style="width:${mPct}%"></i></div><b>${mPct}%</b></div>`:""}
     ${uniqMissed.length?`<p>מילים לחזרה (לחץ לשמוע):</p><div class="review">${uniqMissed.map(q=>`<button class="en" data-say="${esc(q.say)}">${esc(q.show||q.answer)}</button>`).join("")}</div>`:""}
     <div class="row">
-      ${won&&!last?`<button class="cta" id="nextStage">למחזור ${n+1} ←</button>`:""}
-      <button class="cta ${won&&!last?"alt":""}" id="again">שחק שוב</button>
+      ${P.unlocked>n&&!last?`<button class="cta" id="nextStage">למחזור ${Math.min(P.unlocked,STAGES.length)} ←</button>`:""}
+      <button class="cta ${P.unlocked>n&&!last?"alt":""}" id="again">שחק שוב</button>
       <button class="cta alt" id="back">לעמוד הראשי</button>
     </div>
   </section>`;
@@ -713,7 +778,7 @@ function endMatch(){
   app.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
   $("#again").onclick=()=>startMatch(M.i);
   $("#back").onclick=home;
-  const ns=$("#nextStage"); if(ns) ns.onclick=()=>startMatch(n);
+  const ns=$("#nextStage"); if(ns) ns.onclick=()=>startMatch(Math.min(P.unlocked,STAGES.length)-1);
 }
 
 /* ---------- letter drills ---------- */
@@ -739,6 +804,7 @@ function openSheet(d){
   el.querySelectorAll(".sheet-lv").forEach(b=>b.onclick=()=>{ el.remove(); stopDrill(); ctx(); whistle(); d.start(+b.dataset.lv); });
 }
 function drillShell(d,lv,stats,inner){
+  leaveHome("drill");
   RB=snapshot();
   app.innerHTML = topbar() + `
   <div class="hud"><div><div class="hud-t">${d.icon} ${d.t}</div><div class="hud-s">${LVN[lv]} · ${esc(d.lv[lv])}</div></div><div class="hud-stats">${stats}</div></div>

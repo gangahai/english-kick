@@ -74,6 +74,15 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:3px}
 .final{font-family:var(--f-led);font-size:56px;color:var(--led);direction:ltr}
 .stars{font-size:34px;letter-spacing:6px;direction:ltr;color:var(--led)}
 .ghost{color:var(--muted);font-size:14px;padding:8px}
+.modes3{display:grid;gap:10px;width:100%}
+.m3{display:flex;gap:12px;align-items:center;text-align:start;background:rgba(16,24,52,.9);border:1px solid var(--line);border-radius:16px;padding:12px 14px;transition:transform .12s,border-color .12s}
+.m3:hover{transform:translateY(-2px);border-color:var(--led)}
+.m3 .m3i{font-size:30px;width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.06);display:grid;place-items:center;flex:none}
+.m3 b{display:block;font-family:var(--f-display);font-weight:400;font-size:21px}
+.m3 small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.prompt .vis.name{font-size:20px;font-family:var(--f-en);font-weight:700;letter-spacing:.04em}
+.prompt .vis.letter{font-family:var(--f-en);font-weight:700;color:var(--led);font-size:46px}
+.flashmsg{position:fixed;left:0;right:0;top:46%;text-align:center;font-family:var(--f-display);font-size:26px;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.8);pointer-events:none}
 .hello{color:var(--ink);font-family:var(--f-display);font-weight:400;font-size:22px}
 .perf{font-size:13px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .fps{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);inset-inline-end:max(16px,env(safe-area-inset-right,0px));font:12px/1 monospace;background:rgba(0,0,0,.7);color:#3ee07f;padding:5px 8px;border-radius:6px;direction:ltr;z-index:9}
@@ -87,7 +96,7 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:3px}
   <div class="board">
     <div class="side"><i id="tcol"></i><span id="tname"></span></div>
     <div class="score" id="score">0 - 0</div>
-    <div class="side"><span>השוער</span><i style="background:#f4d419"></i></div>
+    <div class="side"><span id="oname">השוער</span><i id="ocol" style="background:#f4d419"></i></div>
   </div>
   <div class="dots" id="dots"></div>
   <div class="prompt">
@@ -97,6 +106,7 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:3px}
   </div>
 </div>
 <div class="big" id="big"></div>
+<div class="flashmsg" id="fmsg" hidden></div>
 <div class="replay" id="replay" hidden><i></i>REPLAY <small>הקש כדי לדלג</small></div>
 <div class="hint" id="hint" hidden>בעט: הקש על התשובה הנכונה בתוך השער</div>
 <div class="bar" id="bar" hidden></div>
@@ -104,10 +114,14 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:3px}
 
 <div class="overlay" id="start">
   <div class="card">
-    <div class="logo">ENGLISH <b>KICK</b><small>3D · DEMO</small></div>
-    <p><b class="hello">ברוך הבא לאצטדיון, אורחי!</b><br>גרסת הדגמה בתלת־ממד: 5 פנדלים. כל תשובה נכונה היא גול.</p>
+    <div class="logo">ENGLISH <b>KICK</b><small>3D STADIUM</small></div>
+    <p><b class="hello">ברוך הבא לאצטדיון, אורחי!</b><br>בחר משחק:</p>
     <div class="chips" id="chips"></div>
-    <button class="go" id="go">לעלות למגרש</button>
+    <div class="modes3">
+      <button class="m3" data-mode="penalty"><span class="m3i">🥅</span><span><b>פנדלים</b><small id="penSub">שאלות מהמחזור שלך</small></span></button>
+      <button class="m3" data-mode="keeper"><span class="m3i">🧤</span><span><b>השוער</b><small>אתה בשער: עוצרים רק כדורים עם האות הנכונה</small></span></button>
+      <button class="m3" data-mode="pass"><span class="m3i">⭐</span><span><b>מסירות לכוכבים</b><small>מוסרים לשחקן לפי האות בשם שלו, ומסיימים בגול</small></span></button>
+    </div>
     <div class="loading" id="loading">טוען את האצטדיון…</div>
     <a class="ghost" href="./">חזרה למשחק הראשי</a>
   </div>
@@ -119,11 +133,13 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:3px}
     <div class="stars" id="endStars"></div>
     <p id="endText"></p>
     <p class="perf" id="perfText"></p>
-    <button class="go" id="again">עוד סדרת פנדלים</button>
+    <button class="go" id="again">עוד פעם</button>
+    <button class="ghost" id="menu">למשחקים אחרים באצטדיון</button>
     <a class="ghost" href="./">חזרה למשחק הראשי</a>
   </div>
 </div>
 
+<script src="content.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (()=>{
@@ -137,27 +153,15 @@ const easeOut=t=>1-Math.pow(1-t,3);
 if(!window.THREE){ $("#loading").textContent="לא הצלחתי לטעון את מנוע התלת־ממד. נסה לרענן את הדף."; return; }
 const T=THREE;
 
-/* ---------- content ---------- */
-const FOOT=[["ball","כדור","⚽"],["goal","שער / גול","🥅"],["team","קבוצה","👕"],["kick","בעיטה","🦵"],["win","לנצח","🏆"],["player","שחקן","🏃"],["coach","מאמן","📋"],["fans","אוהדים","📣"],["shirt","חולצה","👕"],["cup","גביע","🏆"],["keeper","שוער","🧤"],["referee","שופט","🟨"],["fast","מהיר","⚡"],["stadium","אצטדיון","🏟️"],["captain","קפטן","©️"],["jump","לקפוץ","🦘"]];
-const SENT=[["I kick the ___.","ball","אני בועט בכדור."],["He scores a ___!","goal","הוא מבקיע גול!"],["We ___ the cup!","win","אנחנו זוכים בגביע!"],["The ___ shows a red card.","referee","השופט מראה כרטיס אדום."],["The ___ wears gloves.","keeper","השוער לובש כפפות."]];
-const WORDS=FOOT.map(f=>f[0]);
-const opts3=a=>shuffle([a,...shuffle(WORDS.filter(w=>w!==a)).slice(0,2)]);
-function makeRound(){
-  const f=shuffle(FOOT), qs=[];
-  qs.push({vis:f[0][2], ask:`איך אומרים "${f[0][1]}"?`, answer:f[0][0], heb:f[0][1]});
-  qs.push({vis:"🔊", ask:"איזו מילה שמעת?", speak:f[1][0], answer:f[1][0], heb:f[1][1]});
-  qs.push({vis:f[2][2], ask:`איך אומרים "${f[2][1]}"?`, answer:f[2][0], heb:f[2][1]});
-  const s=shuffle(SENT)[0];
-  qs.push({vis:"📣", ask:"איזו מילה חסרה?", sub:s[0], answer:s[1], heb:s[2], show:s[0].replace("___",s[1])});
-  qs.push({vis:"🔊", ask:"איזו מילה שמעת?", speak:f[3][0], answer:f[3][0], heb:f[3][1]});
-  return qs.map(q=>({...q, options:opts3(q.answer)}));
-}
+/* ---------- content (shared with the main game, see content.js) ---------- */
+const EKP=EK.P, NST=EK.STAGES.length, LETTERS=EK.LETTERS, STARS=EK.STARS;
+const curStage=()=>Math.min(EKP.unlocked||1,NST);
+function makeRound(){ const n=curStage(); return EK.STAGES[n-1].make().slice(0,5).map(q=>({...q,stage:n})); }
 
 /* ---------- team ---------- */
 const TEAMS={barca:{name:"ברצלונה",k1:"#1f53d6",k2:"#a50044",crowd:["#1f53d6","#a50044","#a50044","#1f53d6","#ffd34d","#ffffff","#1a2550"]},
              maccabi:{name:"מכבי חיפה",k1:"#0b8f3e",k2:"#0a7a35",crowd:["#0b8f3e","#0b8f3e","#ffffff","#0a7a35","#ffffff","#1a2550","#0b8f3e"]}};
-let team="barca";
-try{ const s=localStorage.getItem("ek3d-team"); if(s&&TEAMS[s]) team=s; }catch(e){}
+let team=TEAMS[EKP.team]?EKP.team:"barca";
 
 /* ---------- audio ---------- */
 let voice=null, muted=false;
@@ -324,7 +328,7 @@ function makeStriker(){
   g.add(shorts,torso,num,head,cap);
   const arm=(sx)=>{ const p=new T.Group(); p.position.set(sx*.34,1.62,0); const a=new T.Mesh(new T.BoxGeometry(.13,.6,.15),kitMat); a.position.y=-.3; const h=new T.Mesh(new T.SphereGeometry(.07,10,8),skin); h.position.y=-.64; p.add(a,h); g.add(p); return p; };
   const armL=arm(-1), armR=arm(1);
-  return {g:shadows(g),legL,legR,armL,armR,kitMat};
+  return {g:shadows(g),legL,legR,armL,armR,kitMat,num};
 }
 const keeper=makeKeeper(); keeper.g.position.set(0,0,-.35); scene.add(keeper.g);
 const striker=makeStriker(); scene.add(striker.g);
@@ -389,9 +393,7 @@ function hud(){
   $("#dots").innerHTML=round.map((_,k)=>`<i class="${log[k]===true?"g":log[k]===false?"s":k===qi?"now":""}"></i>`).join("");
 }
 function startGame(){
-  $("#start").hidden=true; $("#end").hidden=true; $("#hud").hidden=false;
-  document.body.dataset.team=team; $("#tname").textContent="אורחי"; $("#tcol").style.background=`linear-gradient(90deg,${TEAMS[team].k1} 50%,${TEAMS[team].k2} 50%)`;
-  actx(); ambience(); whistle();
+  $("#hint").textContent="בעט: הקש על התשובה הנכונה בתוך השער";
   round=makeRound(); qi=0; goals=0; saves=0; log=[];
   nextQ();
 }
@@ -399,8 +401,8 @@ function nextQ(){
   clearTimeout(autoNext);
   if(qi>=round.length) return endGame();
   Q=round[qi]; hud();
-  $("#pvis").textContent=Q.vis; $("#pask").textContent=Q.ask;
-  $("#psub").innerHTML=Q.sub?`<span class="en">${esc(Q.sub)}</span>`:"";
+  $("#pvis").textContent=Q.vis; $("#pvis").className="vis"+(Q.visName?" name":Q.visEn?" letter":""); $("#pask").textContent=Q.ask;
+  $("#psub").innerHTML=Q.sub||"";
   const sp=$("#speak"); sp.hidden=!Q.speak; sp.classList.remove("pulse"); void sp.offsetWidth; if(Q.speak){ sp.classList.add("pulse"); setTimeout(()=>say(Q.speak),300); }
   panels.forEach((m,k)=>{ m.userData.state=null; setPanel(k,"idle"); m.visible=true; });
   $("#bar").hidden=true; $("#big").className="big"; $("#replay").hidden=true; $("#hint").hidden=false;
@@ -452,7 +454,8 @@ function applyShot(tt){
 }
 function resolve(){
   resolved=true; const s=shot, ok=s.ok;
-  log[qi]=ok; if(ok){ goals++; } else { saves++; }
+  log[qi]=ok; if(ok){ goals++; EKP.goals=(EKP.goals||0)+1; } else { saves++; }
+  EK.recordItem(Q.stage,Q.key,ok);
   hud();
   panels.forEach((m,i)=>setPanel(i, Q.options[i]===Q.answer?"right": i===s.k?"wrong":"dim"));
   const big=$("#big"); big.textContent=ok?"GOAL!":"SAVED"; big.className="big "+(ok?"g":"s"); requestAnimationFrame(()=>big.classList.add("show"));
@@ -475,7 +478,7 @@ function endGame(){
   $("#endTitle").innerHTML=goals>=3?"FULL <b>TIME</b>":"NEXT <b>TIME</b>";
   $("#endScore").textContent=`${goals} - ${saves}`;
   $("#endStars").textContent="★".repeat(st)+"☆".repeat(3-st);
-  $("#endText").textContent=goals>=3?"כל הכבוד אורחי! ניצחון בסדרת הפנדלים.":"עוד סדרה אחת וזה שלך, אורחי. כל מילה שפספסת תחזור.";
+  $("#endText").textContent=(goals>=3?"כל הכבוד אורחי! ניצחון בסדרת הפנדלים.":"עוד סדרה אחת וזה שלך, אורחי. כל מילה שפספסת תחזור.")+` (מחזור ${curStage()}: ${EK.STAGES[curStage()-1].t})`;
   const fps=perf.n?Math.round(perf.n/perf.sum):0, verdict=fps>=50?"חלק לגמרי":fps>=35?"טוב":fps>=24?"קצת איטי":"איטי";
   $("#perfText").textContent=`בדיקת ביצועים במכשיר הזה: ${verdict} (${fps} פריימים בשנייה)${perf.low?". הופעל מצב חיסכון כדי שירוץ חלק יותר.":""}`;
   $("#end").hidden=false; whistle(); if(goals>=3){ cheerUntil=clockT+2.5; confetti(new T.Vector3(0,2,-1)); }
@@ -483,20 +486,201 @@ function endGame(){
 
 /* ---------- input ---------- */
 const ray=new T.Raycaster(), ptr=new T.Vector2();
+/* ---------- shared helpers for the extra stadium games ---------- */
+const spriteCache={};
+function discTex(L,fill,ink){ const k=L+fill; if(spriteCache[k]) return spriteCache[k];
+  const c=document.createElement("canvas"); c.width=c.height=256; const g=c.getContext("2d");
+  g.beginPath(); g.arc(128,128,118,0,7); g.fillStyle=fill; g.fill(); g.lineWidth=10; g.strokeStyle="#151a2b"; g.stroke();
+  g.fillStyle=ink; g.font="bold 150px Andika, Rubik, sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(L,128,140);
+  return spriteCache[k]=canvasTex(c); }
+function labelTex(text,bg){ const c=document.createElement("canvas"); c.width=512; c.height=160; const g=c.getContext("2d");
+  g.fillStyle=bg; rr(g,8,20,496,120,46); g.fill(); g.lineWidth=8; g.strokeStyle="#ffffff"; rr(g,8,20,496,120,46); g.stroke();
+  g.fillStyle="#ffffff"; let fs=88; do{ g.font=`bold ${fs}px Andika, Rubik, sans-serif`; fs-=4; }while(g.measureText(text).width>440&&fs>36);
+  g.textAlign="center"; g.textBaseline="middle"; g.fillText(text,256,84); return canvasTex(c); }
+function nameBackTex(name,num){ const c=document.createElement("canvas"); c.width=c.height=256; const g=c.getContext("2d"); g.fillStyle="#ffffff"; g.textAlign="center"; g.textBaseline="middle";
+  let fs=50; do{ g.font=`bold ${fs}px Rubik, sans-serif`; fs-=2; }while(g.measureText(name).width>240&&fs>20); g.fillText(name,128,52); g.font="bold 150px Rubik, sans-serif"; g.fillText(String(num),128,160); return canvasTex(c); }
+function plainTex(c1,c2){ const c=document.createElement("canvas"); c.width=c.height=64; const g=c.getContext("2d"); g.fillStyle=c1; g.fillRect(0,0,64,64); g.fillStyle=c2; g.fillRect(0,26,64,10); return canvasTex(c); }
+function flashMsg(t,ms=1300){ const el=$("#fmsg"); el.textContent=t; el.hidden=false; clearTimeout(flashMsg.t); flashMsg.t=setTimeout(()=>el.hidden=true,ms); }
+function bigText(t,cls){ const big=$("#big"); big.textContent=t; big.className="big "+cls; requestAnimationFrame(()=>big.classList.add("show")); setTimeout(()=>big.classList.remove("show"),900); }
+const hitMat=new T.MeshBasicMaterial({visible:false});
+let netT=-99;
+function endScreen(title,score,stars,text){
+  phase="end"; $("#hud").hidden=true; $("#bar").hidden=true; $("#hint").hidden=true;
+  $("#endTitle").innerHTML=title; $("#endScore").textContent=score; $("#endStars").textContent="★".repeat(stars)+"☆".repeat(3-stars); $("#endText").textContent=text;
+  const fps=perf.n?Math.round(perf.n/perf.sum):0, verdict=fps>=50?"חלק לגמרי":fps>=35?"טוב":fps>=24?"קצת איטי":"איטי";
+  $("#perfText").textContent=`בדיקת ביצועים במכשיר הזה: ${verdict} (${fps} פריימים בשנייה)${perf.low?". הופעל מצב חיסכון כדי שירוץ חלק יותר.":""}`;
+  $("#end").hidden=false; whistle(); if(stars>=2){ cheerUntil=clockT+2.5; confetti(new T.Vector3(0,2,-1)); }
+}
+
+/* opponents (keeper game) and team-mates (passing game) */
+const shooters=[-5.5,0,5.5].map(x=>{ const s=makeStriker(); s.kitMat.map=plainTex("#f1f3f8","#1b2340"); s.num.visible=false; s.g.position.set(x,0,15.5); s.g.rotation.y=Math.PI; s.g.visible=false; scene.add(s.g); return s; });
+const MATE_POS=[[-3.9,22.5],[3.9,21.5],[-2.3,15],[2.3,14],[0,18.5]];
+const mates=MATE_POS.map(([x,z])=>{ const s=makeStriker(); s.g.position.set(x,0,z); s.g.rotation.y=Math.PI; s.g.visible=false;
+  const hit=new T.Mesh(new T.CylinderGeometry(.9,.9,2.6,8),hitMat); hit.position.y=1.2; s.g.add(hit);
+  const lab=new T.Sprite(new T.SpriteMaterial({transparent:true,depthTest:false})); lab.material.toneMapped=false; lab.scale.set(3.4,1.07,1); lab.position.y=2.9; lab.renderOrder=9; s.g.add(lab);
+  s.hit=hit; s.lab=lab; hit.userData.mate=s; lab.userData.mate=s; scene.add(s.g); return s; });
+
+function setMode(m){
+  const pen=m==="penalty", kp=m==="keeper", ps=m==="pass";
+  panels.forEach(p=>p.visible=pen); striker.g.visible=pen||m==="intro"; keeper.g.visible=!kp; ball.visible=!kp;
+  shooters.forEach(s=>s.g.visible=kp); mates.forEach(s=>s.g.visible=ps);
+  $("#dots").hidden=!pen; $("#oname").textContent=kp?"התוקפים":"השוער"; $("#ocol").style.background=kp?"#f1f3f8":"#f4d419";
+  KG.balls.forEach(b=>{ scene.remove(b.mesh,b.spr); }); KG.balls=[];
+  netHit=null; updateNet(99);
+}
+
+/* ---------- game 2: Orhai in goal — save only the balls with the right letter ---------- */
+const KG={balls:[]};
+const KCAM={pos:new T.Vector3(0,1.4,-1.25), look:new T.Vector3(0,1.25,10)};
+function startKeeper(){
+  Object.assign(KG,{left:40,saved:0,conceded:0,wrong:0,next:.8,ti:0,targets:EK.pickWeighted(LETTERS,L=>"L:"+L,2),balls:[]});
+  camPos.copy(KCAM.pos); camLook.copy(KCAM.look);
+  phase="play"; $("#bar").hidden=true; $("#hint").hidden=false; $("#hint").textContent="הקש על הכדור עם האות הנכונה לפני שהוא נכנס";
+  setTarget(); keeperHud();
+}
+function setTarget(){ KG.target=KG.targets[KG.ti]; $("#pvis").textContent=KG.target; $("#pvis").className="vis letter"; $("#pask").textContent="תעצור רק כדורים עם האות"; const sp=$("#speak"); sp.hidden=false; sp.classList.remove("pulse"); void sp.offsetWidth; sp.classList.add("pulse"); say(KG.target+"."); }
+function keeperHud(){ $("#score").textContent=`${KG.saved} - ${KG.conceded}`; $("#psub").innerHTML=`⏱ ${Math.max(0,Math.ceil(KG.left))} שניות · טעויות: ${KG.wrong}`; }
+function spawnKeeperBall(){
+  const isT=Math.random()<.45, L=isT?KG.target:EK.shuffle(LETTERS.filter(x=>x!==KG.target))[0];
+  const sh=shooters[Math.floor(Math.random()*3)]; sh.kick=clockT;
+  const hf=2*Math.atan(Math.tan(camera.fov*Math.PI/360)*camera.aspect), dist=2.1, xr=Math.min(3,dist*Math.tan(hf/2)*.72);
+  const from=new T.Vector3(sh.g.position.x+.25,.22,sh.g.position.z-.7), to=new T.Vector3((Math.random()*2-1)*xr, .45+Math.random()*1.6, .85);
+  const mesh=new T.Mesh(new T.SphereGeometry(.2,20,14),ball.material); mesh.castShadow=true;
+  const spr=new T.Sprite(new T.SpriteMaterial({map:discTex(L,"#ffffff","#0c1430"),transparent:true,depthTest:false})); spr.material.toneMapped=false; spr.scale.set(.52,.52,1); spr.renderOrder=10;
+  const hit=new T.Mesh(new T.SphereGeometry(.6,8,6),hitMat); mesh.add(hit);
+  scene.add(mesh,spr);
+  const b={mesh,spr,hit,from,to,L,isT,t:0,dur:Math.max(1.35,2.15-(40-KG.left)*.012)+Math.random()*.4,peak:.6+Math.random()*.8,state:"fly"};
+  hit.userData.kb=b; KG.balls.push(b); thump();
+}
+function keeperTap(e){
+  ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ptr,camera);
+  const hits=ray.intersectObjects(KG.balls.filter(b=>b.state==="fly").map(b=>b.hit)); if(!hits.length) return;
+  const b=hits[0].object.userData.kb;
+  if(b.isT){ b.state="saved"; KG.saved++; b.vel=new T.Vector3((b.mesh.position.x>=0?1:-1)*2.5,3.2,7); b.spr.material.map=discTex(b.L,"#3ee07f","#05210f");
+    EK.recordItem(0,"L:"+b.L,true); bigText("SAVE!","g"); burst(900,.6,.3,.1,.9); cheerUntil=clockT+1.2; say(b.L+"."); }
+  else { if(b.bad) return; b.bad=true; KG.wrong++; b.spr.material.map=discTex(b.L,"#ff5a5f","#ffffff"); EK.recordItem(0,"L:"+KG.target,false); burst(220,.6,.35,.02,.4); flashMsg(`זה ${b.L}, לא ${KG.target}`,900); }
+  keeperHud();
+}
+function keeperFrame(dt){
+  KG.left-=dt;
+  if(KG.ti===0&&KG.left<=20){ KG.ti=1; setTarget(); flashMsg(`אות חדשה: ${KG.target}`,1500); }
+  KG.next-=dt; if(KG.next<=0&&KG.left>1.5){ spawnKeeperBall(); KG.next=Math.max(.9,1.45-(40-KG.left)*.01)+Math.random()*.35; }
+  shooters.forEach(s=>{ const k=clockT-(s.kick||-9); s.legR.rotation.x=k<.3?Math.sin(k/.3*Math.PI)*-1.4:0; s.armL.rotation.x=Math.sin(clockT*2+s.g.position.x)*.1; });
+  for(const b of KG.balls){
+    if(b.state==="fly"||b.state==="in"){
+      b.t+=dt; const p=Math.min(b.t/b.dur,1.3);
+      if(p<=1){ b.mesh.position.lerpVectors(b.from,b.to,p); b.mesh.position.y+=b.peak*4*p*(1-p); }
+      else { b.mesh.position.z=b.to.z-(p-1)*8; }
+      b.mesh.rotation.x-=dt*14;
+      if(b.state==="fly"&&p>=1){ b.state="in";
+        if(b.isT){ KG.conceded++; netHit={x:b.to.x,y:b.to.y}; netT=clockT; shakeUntil=clockT+.45; bigText("GOAL","s"); burst(500,.5,.4,.05,.7); EK.recordItem(0,"L:"+b.L,false); keeperHud(); } }
+      if(p>=1.3) b.state="gone";
+    } else if(b.state==="saved"){ b.vel.y-=9.8*dt; b.mesh.position.addScaledVector(b.vel,dt); b.mesh.rotation.x+=dt*10; b.t+=dt; if(b.mesh.position.y<-.5||b.t>b.dur+2) b.state="gone"; }
+    b.spr.position.copy(b.mesh.position);
+  }
+  KG.balls=KG.balls.filter(b=>{ if(b.state==="gone"){ scene.remove(b.mesh,b.spr); return false; } return true; });
+  if(netHit) updateNet(clockT-netT);
+  if(Math.floor(KG.left*4)!==Math.floor((KG.left+dt)*4)) keeperHud();
+  if(KG.left<=0) endKeeper();
+  return {pos:KCAM.pos, look:KCAM.look, k:4};
+}
+function endKeeper(){
+  const s=KG.saved,c=KG.conceded,w=KG.wrong, tot=s+c+w, acc=tot?s/tot:0, st=acc>=.9?3:acc>=.7?2:acc>=.4?1:0;
+  EKP.xp=(EKP.xp||0)+s; EK.save();
+  KG.balls.forEach(b=>scene.remove(b.mesh,b.spr)); KG.balls=[];
+  endScreen(st>=2?"GREAT <b>SAVES</b>":"KEEP <b>GOING</b>", `${s} - ${c}`, st, `עצרת ${s} כדורים, ספגת ${c}, ונגעת ב-${w} כדורים עם אות אחרת. כל הצלה שווה נקודה.`);
+}
+
+/* ---------- game 3: pass to the star whose name fits the clue, then score ---------- */
+const PG={};
+function startPass(){ Object.assign(PG,{attack:0,mistakes:0,goals:0}); newAttack(); }
+function newAttack(){
+  PG.attack++; PG.passes=0; PG.wrongHere=0;
+  // five stars with different first letters, weak names first
+  const pool=EK.pickWeighted(STARS,s=>"S1:"+s[0],STARS.length), pick=[], seen=new Set();
+  for(const s of pool){ if(!seen.has(s[0][0])){ seen.add(s[0][0]); pick.push(s); } if(pick.length===5) break; }
+  mates.forEach((m,i)=>{ const st=pick[i]; m.star=st; m.num.material.map=nameBackTex(st[0],[10,7,9,8,11][i]); m.num.material.needsUpdate=true;
+    m.lab.material.map=labelTex(st[0],"rgba(12,20,48,.88)"); m.lab.material.color.set("#ffffff"); m.lab.scale.set(3.4,1.07,1); m.g.position.set(MATE_POS[i][0],0,MATE_POS[i][1]); });
+  PG.holder=null; PG.from=new T.Vector3(0,BR,27); ball.position.copy(PG.from); PG.fly=null; PG.shot=null;
+  keeper.g.position.set(0,0,-.35); keeper.g.rotation.z=0;
+  phase="play"; $("#bar").hidden=true; $("#hint").hidden=false; $("#hint").textContent="הקש על השחקן הנכון כדי למסור לו";
+  camPos.set(0,9,36); camLook.set(0,0,16.5); mates.forEach(m=>m.lab.visible=true);
+  nextTask();
+}
+function nextTask(){
+  const opts=mates.filter(m=>m!==PG.holder); PG.target=opts[Math.floor(Math.random()*opts.length)]; PG.wrongHere=0;
+  const [n,sp,h]=PG.target.star; PG.type=Math.random()<.5?"letter":"hear";
+  $("#pvis").className="vis"+(PG.type==="letter"?" letter":""); $("#pvis").textContent=PG.type==="letter"?n[0]:"🔊";
+  $("#pask").textContent=PG.type==="letter"?`מסור לשחקן ששמו מתחיל באות ${n[0]}`:"מסור לשחקן ששמעת את השם שלו";
+  $("#psub").innerHTML=`התקפה ${PG.attack} מתוך 3 · מסירה ${PG.passes+1} מתוך 4`;
+  const spk=$("#speak"); spk.hidden=PG.type!=="hear"; if(PG.type==="hear"){ spk.classList.remove("pulse"); void spk.offsetWidth; spk.classList.add("pulse"); setTimeout(()=>say(sp),250); }
+  $("#score").textContent=`${PG.goals} - 0`;
+}
+function passTap(e){
+  if(PG.fly||PG.shot) return;
+  ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ptr,camera);
+  const hits=ray.intersectObjects(mates.flatMap(m=>[m.hit,m.lab])); if(!hits.length) return;
+  const m=hits[0].object.userData.mate; if(!m||m===PG.holder) return;
+  const key=(PG.type==="letter"?"S1:":"S3:")+PG.target.star[0];
+  if(m===PG.target){ EK.recordItem(0,key,true); say(m.star[1]); PG.passes++;
+    const to=m.g.position.clone().add(new T.Vector3(0,BR,-.6)); PG.fly={from:ball.position.clone(),to,t:0,dur:.75};
+    m.lab.material.color.set("#9ff5c3"); setTimeout(()=>m.lab.material.color.set("#ffffff"),700); thump();
+  } else { EK.recordItem(0,key,false); PG.mistakes++; PG.wrongHere++; m.lab.material.color.set("#ff7a7a"); setTimeout(()=>m.lab.material.color.set("#ffffff"),600); burst(220,.6,.3,.02,.4);
+    flashMsg(`זה ${m.star[2]} (${m.star[0]})`,1000); if(PG.wrongHere>=2) PG.target.pulse=clockT; }
+}
+function passFrame(dt){
+  mates.forEach((m,i)=>{ m.g.position.y=Math.abs(Math.sin(clockT*3+i))*.03; const s=m.pulse&&clockT-m.pulse<3?1+Math.abs(Math.sin(clockT*6))*.25:1; m.lab.scale.set(3.4*s,1.07*s,1); });
+  // fixed wide shot of the whole formation, so every team-mate (and backward passes) stays on screen
+  let look=new T.Vector3(ball.position.x*.15,0,16.5), pos=new T.Vector3(ball.position.x*.12,9,34.5);
+  if(PG.fly){ const f=PG.fly; f.t+=dt; const p=Math.min(f.t/f.dur,1); ball.position.lerpVectors(f.from,f.to,p); ball.position.y=BR+Math.sin(p*Math.PI)*1.6; ball.rotation.x-=dt*14;
+    if(p>=1){ PG.fly=null; PG.holder=mates.find(m=>m.g.position.distanceTo(f.to)<1.5)||PG.target; mates.forEach(m=>m.pulse=0);
+      if(PG.passes>=4) setTimeout(shootPass,350); else nextTask(); } }
+  if(PG.shot){ const s=PG.shot; s.t+=dt; const p=Math.min(s.t/.7,1);
+    if(p<1){ ball.position.copy(bez(s.from,s.mid,s.tgt,p)); ball.rotation.x-=dt*20; }
+    else if(!s.done){ s.done=true; PG.goals++; netHit={x:s.tgt.x,y:s.tgt.y}; netT=clockT; confetti(s.tgt); cheerUntil=clockT+2.4; shakeUntil=clockT+.45; burst(900,.6,.5,.2,1.8); bigText("GOAL!","g"); swell(.14,.2); setTimeout(()=>swell(.05,2),1600);
+      $("#score").textContent=`${PG.goals} - 0`; setTimeout(()=>{ if(GAME!=="pass"||phase!=="play") return; PG.attack>=3?endPass():newAttack(); },2300); }
+    else { const w=s.t-.7; ball.position.set(s.tgt.x,Math.max(BR,s.tgt.y-4.9*w*w),Math.max(-1.6,s.tgt.z-w*2)); }
+    const kp=clamp((s.t-.1)/.55), e=easeOut(kp); keeper.g.position.set(s.dir*1.15*e,.7*Math.sin(Math.PI*kp),-.35); keeper.g.rotation.z=-s.dir*1.18*e;
+    keeper.armL.rotation.z=lerp(-.75,-2.75,e); keeper.armR.rotation.z=lerp(.75,2.75,e);
+    pos=new T.Vector3(ball.position.x*.3,5.5,Math.max(10,ball.position.z+11)); look=new T.Vector3(0,1.2,0); }
+  else if(!PG.fly){ keeper.g.position.x=Math.sin(clockT*1.8)*.3; }
+  if(netHit) updateNet(clockT-netT);
+  return {pos,look,k:2};
+}
+function shootPass(){
+  if(GAME!=="pass"||phase!=="play") return;
+  const side=Math.random()<.5?-1:1, tgt=new T.Vector3(side*(2.2+Math.random()*.9),.6+Math.random()*1.4,-.2), from=ball.position.clone();
+  const mid=from.clone().lerp(tgt,.5); mid.y+=1.6;
+  PG.shot={from,tgt,mid,t:0,dir:-side,done:false}; thump(); mates.forEach(m=>m.lab.visible=false);
+  $("#pask").textContent=`${PG.holder.star[0]} בועט לשער!`; $("#pvis").textContent="⚽"; $("#speak").hidden=true;
+}
+function endPass(){
+  const m=PG.mistakes, st=m<=1?3:m<=4?2:1; EKP.xp=(EKP.xp||0)+PG.goals*3; EKP.goals=(EKP.goals||0)+PG.goals; EK.save();
+  endScreen("FULL <b>TIME</b>",`${PG.goals} - 0`,st,`3 התקפות, 3 גולים ו-${m} טעויות במסירות.${st<3?" עם טעות אחת לכל היותר מקבלים 3 כוכבים.":" משחק מושלם!"}`);
+}
+
+
 function hitPanel(e){ ptr.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ptr,camera); const h=ray.intersectObjects(panels.filter(p=>p.visible)); return h.length?h[0].object.userData.k:-1; }
 canvas.addEventListener("pointerdown",e=>{
   if(phase==="aim"){ const k=hitPanel(e); if(k>=0) pick(k); }
   else if(phase==="replay"){ replayDone=true; }
+  else if(phase==="play"){ GAME==="keeper"?keeperTap(e):passTap(e); }
 });
 canvas.addEventListener("pointermove",e=>{
   if(phase!=="aim"||e.pointerType!=="mouse") return; const k=hitPanel(e); canvas.style.cursor=k>=0?"pointer":"default"; panels.forEach((m,i)=>setPanel(i,i===k?"hover":"idle"));
 });
 addEventListener("keydown",e=>{ if(phase==="aim"&&["1","2","3"].includes(e.key)) pick(+e.key-1); });
-$("#speak").onclick=()=>{ if(Q&&Q.speak) say(Q.speak); };
-$("#go").onclick=startGame;
-$("#again").onclick=startGame;
+$("#speak").onclick=()=>{ if(GAME==="keeper") return say(KG.target+"."); if(GAME==="pass") return say(PG.target.star[1]); if(Q&&Q.speak) say(Q.speak); };
+let GAME="penalty";
+function launch(m){ GAME=m; setMode(m); actx(); ambience(); whistle(); $("#start").hidden=true; $("#end").hidden=true; $("#hud").hidden=false;
+  document.body.dataset.team=team; $("#tname").textContent="אורחי"; $("#tcol").style.background=`linear-gradient(90deg,${TEAMS[team].k1} 50%,${TEAMS[team].k2} 50%)`;
+  if(m==="penalty") startGame(); else if(m==="keeper") startKeeper(); else startPass(); }
+document.querySelectorAll(".m3").forEach(b=>b.onclick=()=>launch(b.dataset.mode));
+$("#again").onclick=()=>launch(GAME);
+$("#menu").onclick=()=>{ phase="intro"; setMode("intro"); $("#end").hidden=true; $("#start").hidden=false; $("#penSub").textContent=`שאלות ממחזור ${curStage()}: ${EK.STAGES[curStage()-1].t}`; };
+$("#penSub").textContent=`שאלות ממחזור ${curStage()}: ${EK.STAGES[curStage()-1].t}`;
 function chips(){ $("#chips").innerHTML=Object.entries(TEAMS).map(([k,v])=>`<button class="chip" data-t="${k}" aria-pressed="${team===k}"><i style="background:linear-gradient(90deg,${v.k1} 50%,${v.k2} 50%)"></i>${v.name}</button>`).join("");
-  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ team=b.dataset.t; try{localStorage.setItem("ek3d-team",team);}catch(e){} striker.kitMat.map.dispose(); striker.kitMat.map=stripeTex(); striker.kitMat.needsUpdate=true; banner.material.map.dispose(); banner.material.map=bannerTex(); banner.material.needsUpdate=true; colorCrowd(); chips(); }); }
+  $("#chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{ team=b.dataset.t; EKP.team=team; EK.save(); striker.kitMat.map.dispose(); striker.kitMat.map=stripeTex(); striker.kitMat.needsUpdate=true; mates.forEach(m=>{ m.kitMat.map=stripeTex(); m.kitMat.needsUpdate=true; }); banner.material.map.dispose(); banner.material.map=bannerTex(); banner.material.needsUpdate=true; colorCrowd(); chips(); }); }
 chips();
 
 /* ---------- performance: measure in play, drop to a lighter mode on slow phones ---------- */
@@ -525,7 +709,7 @@ function frame(now){
   let wantPos=CAM.pos, wantLook=CAM.look, camK=2.5;
   if(phase==="intro"||phase==="end"){
     const a=clockT*.12; tmpV.set(Math.sin(a)*14,5.5,6+Math.cos(a)*12); wantPos=tmpV; wantLook=new T.Vector3(0,1,2); camK=1.2;
-    striker.g.position.copy(S_START); striker.g.rotation.y=sFace; ball.position.copy(SPOT);
+    if(GAME==="penalty"||!$("#start").hidden){ striker.g.position.copy(S_START); striker.g.rotation.y=sFace; ball.position.copy(SPOT); }
     keeper.g.position.set(Math.sin(clockT*1.8)*.3,0,-.35); keeper.g.rotation.z=0;
   } else if(phase==="aim"){
     keeper.g.position.set(Math.sin(clockT*1.8)*.32,0,-.35); keeper.g.rotation.z=0; keeper.body.position.y=Math.abs(Math.sin(clockT*3.6))*.04;
@@ -545,6 +729,8 @@ function frame(now){
     tau+=dt*.32; applyShot(tau);
     wantPos=SIDE.pos; wantLook=new T.Vector3(lerp(SIDE.look.x,shot.tgt.x*.5,.5),SIDE.look.y,SIDE.look.z); camK=6;
     if(tau>1.35||replayDone){ phase="result"; $("#replay").hidden=true; applyShot(1.6); autoNext=setTimeout(()=>{ if(phase==="result") advance(); },2600); }
+  } else if(phase==="play"){
+    const c=GAME==="keeper"?keeperFrame(dt):passFrame(dt); wantPos=c.pos; wantLook=c.look; camK=c.k;
   } else if(phase==="result"){
     applyShot(Math.min(tau+=dt,2.4)); wantPos=new T.Vector3(CAM.pos.x+shot.tgt.x*.1,CAM.pos.y-.1,CAM.pos.z-.3); wantLook=new T.Vector3(shot.tgt.x*.2,1.15,0); camK=1.5;
   }
@@ -556,6 +742,8 @@ function frame(now){
   renderer.render(scene,camera);
   requestAnimationFrame(frame);
 }
+setMode("intro");
+window.__ek3d={PG,KG,mates,camera,T};
 requestAnimationFrame(frame);
 $("#loading").hidden=true;
 try{ document.fonts.ready.then(()=>{ adMat.map=boardTex(); adMat.map.repeat.set(1.6,1); adMat.needsUpdate=true; }); }catch(e){}
