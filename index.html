@@ -332,6 +332,39 @@ body[data-team="maccabi"]{ --kit-1:#0b8f3e; --kit-2:#087a34; }
   .target{min-height:62px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Thursday test (page 10) + RTL fix */
+body{direction:rtl}
+.exam{border-radius:22px;padding:3px;background:linear-gradient(135deg,var(--led),#f2a91e 50%,var(--kit-1))}
+.exam-in{background:linear-gradient(180deg,#141f45,#0c1330);border-radius:19px;padding:16px;display:grid;gap:10px}
+.exam-h{display:flex;align-items:center;gap:12px}
+.exam-h .rank-txt{flex:1;min-width:0}
+.ready{display:grid;justify-items:center;line-height:1.1}
+.ready b{font-family:var(--f-led);color:var(--led);font-size:24px;font-weight:400;direction:ltr}
+.ready span{color:var(--muted);font-size:12px}
+.modes{display:grid;gap:8px}
+.mode{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:11px 14px;text-align:start;display:grid;grid-template-columns:1fr auto;column-gap:12px;row-gap:2px;align-items:center;transition:transform .15s,border-color .15s}
+.mode:hover{transform:translateY(-2px);border-color:var(--led)}
+.mode:active{transform:scale(.97)}
+.mode b{font-size:16px}
+.mode span{color:var(--muted);font-size:13px;line-height:1.35}
+.mode .st{grid-column:2;grid-row:1/3;color:var(--led);direction:ltr;font-size:15px;letter-spacing:2px}
+.mode.full{background:linear-gradient(180deg,#2a2410,#1a1608);border-color:#6b5414}
+.pnode-row{justify-self:center;width:max-content}
+.path{overflow-x:clip}
+.tablebtn{background:var(--night);border:1px solid var(--panel-line);border-radius:12px;padding:11px;font-weight:700}
+.target.he{font-family:var(--f-body);direction:rtl;font-size:clamp(17px,4.8vw,26px)}
+.prompt .sub .en.word{font-size:32px;font-weight:700;color:var(--led)}
+.wtable{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.wcat{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:12px;display:grid;gap:6px;align-content:start}
+.wcat h3{margin:0 0 4px;font-family:var(--f-display);font-weight:400;font-size:19px}
+.wcat h3 small{display:block;font-family:var(--f-en);color:var(--muted);font-size:13px;text-align:right}
+.wrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;column-gap:8px;row-gap:2px;min-width:0;background:var(--night);border:1px solid var(--panel-line);border-radius:10px;padding:8px 10px;text-align:start}
+.wrow:active{transform:scale(.97)}
+.wrow .en{font-size:18px;font-weight:700;white-space:nowrap}
+.wrow .h{color:var(--muted);font-size:14px;white-space:nowrap}
+.wrow.ok{border-color:var(--good)}
+.wrow.ok .en::after{content:" ✓";color:var(--good)}
 </style>
 
 <div id="app"></div>
@@ -430,6 +463,41 @@ const SHOTS = 10, PASS = 7;
 
 /* ---------- storage (shared) ---------- */
 const P=EK.P, save=EK.save;
+
+/* ---------- Thursday test: the table on page 10 ---------- */
+const CATS = [
+  {id:"body", he:"חלקי הגוף", en:"body"},
+  {id:"clothes", he:"בגדים", en:"clothes"},
+  {id:"numbers", he:"מספרים", en:"numbers"},
+  {id:"school", he:"בית ספר", en:"school"},
+  {id:"animals", he:"בעלי חיים", en:"animals"}
+];
+const TW = [
+  ["ears","אוזניים","body","👂"],["legs","רגליים","body","🦵"],["mouth","פה","body","👄"],
+  ["coat","מעיל","clothes","🧥"],["dress","שמלה","clothes","👗"],["jacket","ז׳קט","clothes","🧥"],
+  ["a hundred","מאה","numbers","100"],["seventeen","שבע־עשרה","numbers","17"],["thirty","שלושים","numbers","30"],
+  ["book","ספר","school","📖"],["pencil","עיפרון","school","✏️"],["study","ללמוד","school","📚"],
+  ["bird","ציפור","animals","🐦"],["cow","פרה","animals","🐄"],["sheep","כבשה","animals","🐑"]
+];
+const catHe = id => CATS.find(c=>c.id===id).he;
+const TW_EN = TW.map(w=>w[0]), TW_HE = TW.map(w=>w[1]), CAT_HE = CATS.map(c=>c.he);
+const qMeaning = ([w,h]) => ({key:"TW:"+w, word:w, vis:"📖", ask:"מה הפירוש של המילה?", sub:`<span class="en word">${esc(w)}</span>`, speak:w, say:w, he:true, options:opts3(h,TW_HE), answer:h, show:w, heb:h });
+const qSay = ([w,h,c,e]) => ({key:"TW:"+w, word:w, vis:e, ask:`איך אומרים "${h}"?`, say:w, options:opts3(w,TW_EN), answer:w, heb:h });
+const qCat = ([w,h,c]) => ({key:"TW:"+w, word:w, vis:"🗂️", ask:"לאיזו קבוצה שייכת המילה?", sub:`<span class="en word">${esc(w)}</span>`, speak:w, say:w, he:true, options:opts3(catHe(c),CAT_HE), answer:catHe(c), show:w, heb:`${h} · ${catHe(c)}` });
+function qOdd([w,h,c]){
+  const other = shuffle(CATS.filter(x=>x.id!==c))[0].id;
+  const two = shuffle(TW.filter(x=>x[2]===other)).slice(0,2);
+  const L = s => "⁦"+s+"⁩";
+  return {key:"TW:"+w, word:w, vis:"🧐", ask:"איזו מילה לא שייכת לקבוצה?", say:w, options:shuffle([w,two[0][0],two[1][0]]), answer:w, heb:`${L(two[0][0])} ו־${L(two[1][0])}: ${catHe(other)}. ${L(w)}: ${catHe(c)}` };
+}
+const TEST = [
+  {id:"meaning", t:"מה הפירוש?", s:"רואים ושומעים מילה באנגלית, בוחרים בעברית", n:15, make:()=>shuffle(TW).map(qMeaning)},
+  {id:"say", t:"איך אומרים?", s:"מעברית לאנגלית", n:15, make:()=>shuffle(TW).map(qSay)},
+  {id:"cat", t:"לאיזו קבוצה?", s:"ממיינים כל מילה לקטגוריה שלה", n:15, make:()=>shuffle(TW).map(qCat)},
+  {id:"full", t:"המבדק המלא", s:"15 פנדלים מעורבבים: פירוש, תרגום, מיון ו״מי לא שייך״", n:15, full:true, make:()=>shuffle(TW).map((w,k)=>[qMeaning,qSay,qCat,qOdd][k%4](w))}
+];
+const sure = () => TW.filter(w=>((P.tw||{})[w[0]]||0)>=2).length;
+
 let muted=false;
 
 /* ---------- sound ---------- */
@@ -550,6 +618,13 @@ function home(){
       <button class="play" id="play"><span class="play-ic"></span><span><b>שחק</b><small>מחזור ${cur+1} · ${STAGES[cur].t}</small></span></button>
     </div>
   </section>
+  <section class="exam"><div class="exam-in">
+    <div class="exam-h"><div class="rank-txt"><div class="rk-l">ביום חמישי · עמוד 10 בספר</div><div class="rk-n">המבדק של אורחי</div></div><div class="ready"><b>${sure()}/${TW.length}</b><span>מילים בטוחות</span></div></div>
+    <div class="xp"><i style="width:${Math.max(3,Math.round(sure()/TW.length*100))}%"></i></div>
+    <div class="xp-l">מילה נחשבת בטוחה אחרי שתי תשובות נכונות ברצף. צריך לדעת מה כל מילה אומרת ולאיזו קבוצה היא שייכת.</div>
+    <div class="modes">${TEST.map((m,k)=>`<button class="mode ${m.full?"full":""}" data-test="${k}"><b>${m.t}</b><span>${m.s}</span><span class="st">${starStr(P.best["test_"+m.id]||0)}</span></button>`).join("")}</div>
+    <button class="tablebtn" id="wtable">📋 טבלת המילים מהספר</button>
+  </div></section>
   <a class="cta3d" href="3d.html"><span class="cta3d-i">🏟️</span><span><b>אצטדיון תלת־ממד</b><small>פנדלים, שוער ומסירות לכוכבים בתלת־ממד</small></span></a>
   <h2 class="sec-title">אימון אותיות</h2>
   <div class="tiles">${DRILLS.map(d=>{ const tot=[0,1,2].reduce((a,k)=>a+(P.best[d.id+k]||0),0);
@@ -567,6 +642,8 @@ function home(){
   if(MUS.on) $("#music").classList.add("on");
   $("#kit").onclick=()=>{ P.team=other; save(); home(); };
   $("#play").onclick=()=>startMatch(cur);
+  app.querySelectorAll(".mode").forEach(b=>b.onclick=()=>startMatch(-1, TEST[+b.dataset.test]));
+  $("#wtable").onclick=wordTable;
   app.querySelectorAll(".pnode").forEach(b=>b.onclick=()=>startMatch(+b.dataset.stage));
   app.querySelectorAll(".tile").forEach(b=>b.onclick=()=>openSheet(DRILLS.find(x=>x.id===b.dataset.drill)));
   requestAnimationFrame(drawPath);
@@ -626,10 +703,9 @@ function report(){
 
 /* ---------- match ---------- */
 let M=null;
-function startMatch(i){
+function startMatch(i, st=STAGES[i]){
   leaveHome("match");
-  const st=STAGES[i];
-  M={ i, st, queue:st.make(), idx:0, goals:0, saves:0, log:[], missed:[], busy:false, streak:0 };
+  M={ i, st, n:st.n||SHOTS, test:i<0, queue:st.make(), idx:0, goals:0, saves:0, log:[], missed:[], busy:false, streak:0 };
   RB=snapshot();
   ctx(); whistle();
   const team=TEAMS[P.team||"barca"];
@@ -639,7 +715,7 @@ function startMatch(i){
     <div class="score" id="score">0 - 0</div>
     <div class="side"><span>השוער</span><i style="background:var(--keeper)"></i></div>
   </div>
-  <div class="shots" id="shots" aria-label="בעיטות">${Array.from({length:SHOTS},()=>"<i></i>").join("")}</div>
+  <div class="shots" id="shots" aria-label="בעיטות">${Array.from({length:M.n},()=>"<i></i>").join("")}</div>
   <div class="prompt" id="prompt"></div>
   <div class="pitch" id="pitch">
     <canvas class="stands" id="stands"></canvas>
@@ -653,7 +729,7 @@ function startMatch(i){
     <div class="lights"></div>
     <div class="flash" id="flash"><div class="box" id="flashbox"></div></div>
   </div>
-  <div class="matchfoot"><button class="ghost" id="quit">→ חזרה ללוח המשחקים</button><span class="ghost">מחזור ${i+1}: ${st.t}</span></div>`;
+  <div class="matchfoot"><button class="ghost" id="quit">→ חזרה ללוח המשחקים</button><span class="ghost">${M.test?"מבדק":"מחזור "+(i+1)}: ${st.t}</span></div>`;
   bindMute();
   $("#quit").onclick=home;
   crowdView=mountCrowd($("#stands"));
@@ -662,12 +738,12 @@ function startMatch(i){
 
 function renderShots(){
   const dots=$("#shots").children;
-  for(let k=0;k<SHOTS;k++){ const r=M.log[k]; dots[k].className = r===true?"g":r===false?"s":(k===M.idx?"now":""); }
+  for(let k=0;k<M.n;k++){ const r=M.log[k]; dots[k].className = r===true?"g":r===false?"s":(k===M.idx?"now":""); }
   $("#score").textContent = `${M.goals} - ${M.saves}`;
 }
 
 function nextShot(){
-  if(M.idx>=SHOTS) return endMatch();
+  if(M.idx>=M.n) return endMatch();
   const q=M.queue[M.idx];
   M.busy=false;
   renderShots();
@@ -678,7 +754,7 @@ function nextShot(){
     ${hasAudio?`<button class="speak pulse" id="speak" aria-label="השמע שוב">🔊</button>`:`<span></span>`}`;
   if(hasAudio){ $("#speak").onclick=()=>say(q.speak); setTimeout(()=>say(q.speak),250); }
   const T=$("#targets");
-  T.innerHTML = q.options.map((o,k)=>`<button class="target en" data-k="${k}">${esc(o)}</button>`).join("");
+  T.innerHTML = q.options.map((o,k)=>`<button class="target ${q.he?"he":"en"}" data-k="${k}">${esc(o)}</button>`).join("");
   T.querySelectorAll(".target").forEach(b=>b.onclick=()=>shoot(+b.dataset.k, b));
   const ball=$("#ball"); ball.style.transition="none"; ball.style.transform=""; ball.classList.add("ready"); void ball.offsetWidth; ball.style.transition="";
   const sh=$("#bshadow"); sh.style.transition="none"; sh.style.transform=""; sh.style.opacity=""; void sh.offsetWidth; sh.style.transition="";
@@ -722,9 +798,9 @@ function shoot(k, btn){
       M.missed.push(q);
       // bring this item back later in the match (spaced retry)
       const back=M.idx+3;
-      if(back<SHOTS){ M.queue.splice(back,0,{...q, options:shuffle(q.options)}); M.queue.length=Math.max(SHOTS,M.queue.length); }
+      if(back<M.n){ M.queue.splice(back,0,{...q, options:shuffle(q.options)}); M.queue.length=Math.max(M.n,M.queue.length); }
     }
-    M.log[M.idx]=ok; EK.recordItem(M.i+1,q.key,ok);
+    M.log[M.idx]=ok; if(q.word){ P.tw=P.tw||{}; P.tw[q.word]=ok?(P.tw[q.word]||0)+1:0; } EK.recordItem(Math.max(0,M.i+1),q.key,ok);
     renderShots();
     showFlash(ok,q);
     setTimeout(()=>say(q.say),ok?350:500);
@@ -744,7 +820,50 @@ function showFlash(ok,q){
   if(ok) setTimeout(go,1500); else $("#next").onclick=go;
 }
 
+function wordTable(){
+  leaveHome("table");
+  const tw=P.tw||{};
+  app.innerHTML = topbar() + `
+  <div class="hud"><div><div class="hud-t">טבלת המילים</div><div class="hud-s">עמוד 10 · לחץ על מילה כדי לשמוע אותה</div></div><div class="hud-stats"><div class="stat"><span class="n">${sure()}/${TW.length}</span><span class="l">בטוחות</span></div></div></div>
+  <div class="wtable">${CATS.map(c=>`<div class="wcat"><h3>${c.he}<small>${c.en}</small></h3>${TW.filter(w=>w[2]===c.id).map(w=>`<button class="wrow ${(tw[w[0]]||0)>=2?"ok":""}" data-say="${esc(w[0])}"><span class="en">${esc(w[0])}</span><span class="h">${esc(w[1])}</span></button>`).join("")}</div>`).join("")}</div>
+  <div class="matchfoot"><button class="ghost" id="quit">→ חזרה לעמוד הראשי</button></div>`;
+  bindMute(); $("#quit").onclick=home;
+  app.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
+}
+
+function endTest(){
+  const g=M.goals, N=M.n, st=M.st, key="test_"+st.id;
+  const stars = g>=N?3:g>=N-2?2:g>=Math.ceil(N*.7)?1:0;
+  if(stars>(P.best[key]||0)) P.best[key]=stars;
+  P.xp=(P.xp||0)+stars*3; save(); whistle();
+  const rw=collectRewards(RB);
+  if(stars>=2||rw.any) setTimeout(()=>confetti(innerWidth/2, innerHeight*.3),250);
+  const uniqMissed=[...new Map(M.missed.map(q=>[q.word,q])).values()];
+  const s=sure();
+  app.innerHTML = topbar() + `
+  <section class="result">
+    <div class="trophy">${stars>=3?"🏆":stars>=1?"🥇":"💪"}</div>
+    <h2>${stars>=3?"מוכן למבדק, אורחי!":stars>=1?"יפה מאוד, אורחי!":"עוד סיבוב אחד, אורחי"}</h2>
+    <div class="final">${g} - ${N-g}</div>
+    <div class="stars" aria-label="${stars} כוכבים">${starStr(stars)}</div>
+    ${rw.html}
+    <p>${s} מתוך ${TW.length} מילים כבר בטוחות.${stars<3?` בלי טעויות מקבלים 3 כוכבים.`:""}</p>
+    ${uniqMissed.length?`<p>מילים לחזרה (לחץ לשמוע):</p><div class="review">${uniqMissed.map(q=>{ const w=TW.find(x=>x[0]===q.word); return `<button data-say="${esc(q.word)}"><span class="en">${esc(q.word)}</span> · ${esc(w[1])} · ${esc(catHe(w[2]))}</button>`; }).join("")}</div>`:""}
+    <div class="row">
+      <button class="cta" id="again">שוב</button>
+      <button class="cta alt" id="tbl">טבלת המילים</button>
+      <button class="cta alt" id="back">לעמוד הראשי</button>
+    </div>
+  </section>`;
+  bindMute();
+  app.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(b.dataset.say));
+  $("#again").onclick=()=>startMatch(-1, st);
+  $("#tbl").onclick=wordTable;
+  $("#back").onclick=home;
+}
+
 function endMatch(){
+  if(M.test) return endTest();
   const n=M.i+1, g=M.goals;
   const stars = g>=10?3:g>=9?2:g>=PASS?1:0;
   const won = g>=PASS;
